@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search by ECU Name & Date</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+      overflow: hidden; /* Hide overflow for rounded corners */
+      position: relative; /* For positioning child elements */
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    label {
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+
+    input[type="text"],
+    input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #3498db;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-bottom: 10px; /* Add margin for spacing */
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    #result {
+      margin-top: 20px;
+      max-height: 200px; /* Set a max height for the result container */
+      overflow-y: auto; /* Enable scrolling if content overflows */
+      padding: 10px; /* Padding inside the results section */
+      border: 1px solid #ddd; /* Border for the results section */
+      border-radius: 5px; /* Rounded corners for the results section */
+      background-color: #ecf0f1; /* Background color for the results section */
+    }
+
+    .entry {
+      background-color: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .entry p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    /* Go Back Button */
+    .go-back {
+      width: 100%; /* Same width as other buttons */
+      padding: 12px;
+      background-color: #000; /* Black background */
+      color: white; /* White text */
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .go-back:hover {
+      background-color: #444; /* Darker shade on hover */
+    }
+
+    /* Loading Message Styles */
+    .loading-message {
+      display: none; /* Hidden by default */
+      text-align: center;
+      color: #3498db; /* Blue color for the message */
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    /* Totals Styles */
+    .totals {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #2c3e50;
+      font-size: 16px;
+    }
+
+  </style>
+  <script>
+    function searchECUAndDate() {
+      const ecuName = document.getElementById('ecuName').value;
+      const date = document.getElementById('date').value;
+      const loadingMessage = document.getElementById('loading-message');
+      const totalsDiv = document.getElementById('totals');
+
+      if (!ecuName || !date) {
+        alert('Please provide both ECU Name and Date.');
+        return;
+      }
+
+      // Show loading message
+      loadingMessage.style.display = 'block';
+      totalsDiv.style.display = 'none'; // Hide totals while fetching
+
+      const url = `https://script.google.com/macros/s/AKfycbyNcZgJr3JTrdjXlLWprqID-Ci7kQ18WqWBlfBqnsNbvoTm1YCyMRhasz5l3RDu_7mK/exec?action=searchByECUAndDate&ecu_name=${encodeURIComponent(ecuName)}&date=${encodeURIComponent(date)}`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const resultContainer = document.getElementById('result');
+          resultContainer.innerHTML = '';
+          loadingMessage.style.display = 'none'; // Hide loading message
+
+          // Calculate totals
+          const totalEntries = data.length;
+          const totalQuantity = data.reduce((sum, entry) => sum + entry.Quantity, 0);
+
+          // Show totals
+          totalsDiv.innerHTML = `Total Entries: ${totalEntries} | Total Quantity: ${totalQuantity}`;
+          totalsDiv.style.display = 'block'; // Show totals
+
+          if (data.length === 0) {
+            resultContainer.innerHTML = 'No data found for the given ECU Name and Date.';
+          } else {
+            data.forEach(entry => {
+              const entryDiv = document.createElement('div');
+              entryDiv.classList.add('entry');
+              entryDiv.innerHTML = `
+                <p><strong>Timestamp:</strong> ${entry.Timestamp}</p>
+                <p><strong>ECU Name:</strong> ${entry.ECUName}</p>
+                <p><strong>Client Name:</strong> ${entry.ClientName}</p>
+                <p><strong>Selected Number:</strong> ${entry.SelectedNumber}</p>
+                <p><strong>Quantity:</strong> ${entry.Quantity}</p>
+              `;
+              resultContainer.appendChild(entryDiv);
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          loadingMessage.style.display = 'none'; // Hide loading message in case of error
+        });
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Search by ECU Name & Date</h1>
+    <label for="ecuName">ECU Name:</label>
+    <input type="text" id="ecuName" required>
+
+    <label for="date">Select Date:</label>
+    <input type="date" id="date" required>
+
+    <button onclick="searchECUAndDate()">Search</button>
+    
+    <button class="go-back" onclick="window.history.back();">Go Back</button> <!-- Styled Go Back button -->
+
+    <div class="totals" id="totals" style="display: none;">Total Entries: 0 | Total Quantity: 0</div> <!-- Totals display -->
+
+    <h2>Results:</h2>
+    <div id="result"></div>
+    
+    <div class="loading-message" id="loading-message">Fetching Live Data, Please Wait...</div> <!-- Loading message -->
+  </div>
+</body>
+</html>

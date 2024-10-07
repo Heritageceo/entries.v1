@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fff;
+            z-index: 100;
+            padding-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #2980b9;
+            margin: 0;
+            text-align: center;
+        }
+
+        .back-btn {
+            background-color: black; /* Updated to black */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #333; /* Darker shade for hover */
+        }
+
+        .current-date {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        .search-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 300px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .form-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #2980b9;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-btn:hover {
+            background-color: #6dd5fa;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #2980b9;
+            margin-top: 20px;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            display: none; /* Initially hidden */
+        }
+
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #e0f7fa;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .quantity-info {
+            font-weight: bold;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                padding: 10px;
+            }
+
+            button, .back-btn {
+                width: auto;
+                font-size: 14px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .form-control {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <button type="button" class="back-btn" onclick="window.history.back();">Go Back</button>
+        <h1>Search Data</h1>
+    </div>
+
+    <div class="current-date" id="currentDateTime"></div>
+
+    <div class="search-section">
+        <input type="text" id="searchInput" class="form-control" placeholder="Enter ECU or Client Name">
+        <button type="button" id="searchBtn" class="form-btn">Search</button>
+    </div>
+
+    <div class="loading" id="loadingMessage" style="display:none;">Fetching live data, please wait...</div>
+
+    <div class="result" id="searchResult"></div>
+    <div class="summary" id="summaryResult" style="display:none;">
+        <p class="quantity-info">Total Number of 5 selections: <span id="num5Count">0</span></p>
+        <p class="quantity-info">Total Quantity of 5: <span id="totalQuantityOf5">0</span></p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Display current date and time
+        function updateCurrentDateTime() {
+            const now = new Date();
+            document.getElementById('currentDateTime').innerText = now.toLocaleString();
+        }
+
+        updateCurrentDateTime(); // Initial call to set the time
+
+        // Function to fetch the current count and quantity of number 5
+        function fetchSummary() {
+            fetch('https://script.google.com/macros/s/AKfycbyNcZgJr3JTrdjXlLWprqID-Ci7kQ18WqWBlfBqnsNbvoTm1YCyMRhasz5l3RDu_7mK/exec?action=summary')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('num5Count').innerText = data.num5Count;
+                    document.getElementById('totalQuantityOf5').innerText = data.totalQuantityOf5;
+                    document.getElementById('summaryResult').style.display = 'block';
+                })
+                .catch(error => console.error('Error fetching summary:', error));
+        }
+
+        // Function to search data based on input
+        function searchData() {
+            const searchQuery = document.getElementById('searchInput').value;
+
+            // Show loading message
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('searchResult').style.display = 'none'; // Hide previous results
+
+            fetch(`https://script.google.com/macros/s/AKfycbyNcZgJr3JTrdjXlLWprqID-Ci7kQ18WqWBlfBqnsNbvoTm1YCyMRhasz5l3RDu_7mK/exec?action=getData&search=${encodeURIComponent(searchQuery)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultContainer = document.getElementById('searchResult');
+                    resultContainer.innerHTML = ''; // Clear previous results
+
+                    if (data.length === 0) {
+                        resultContainer.innerHTML = '<p>No results found.</p>';
+                    } else {
+                        data.forEach(entry => {
+                            const entryDiv = document.createElement('div');
+                            entryDiv.classList.add('result-entry');
+                            entryDiv.innerHTML = `
+                                <p><strong>Timestamp:</strong> ${new Date(entry.Timestamp).toLocaleString()}</p>
+                                <p><strong>ECU Name:</strong> ${entry.ECUName}</p>
+                                <p><strong>Client Name:</strong> ${entry.ClientName}</p>
+                                <p><strong>Selected Number:</strong> ${entry.SelectedNumber}</p>
+                                <p><strong>Quantity:</strong> ${entry.Quantity}</p>
+                                <hr>
+                            `;
+                            resultContainer.appendChild(entryDiv);
+                        });
+                    }
+
+                    // Hide loading message and show results
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    resultContainer.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.getElementById('loadingMessage').style.display = 'none'; // Hide loading message on error
+                });
+        }
+
+        // Event listener for the search button
+        document.getElementById('searchBtn').addEventListener('click', searchData);
+
+        // Fetch summary and update every second
+        setInterval(() => {
+            fetchSummary();
+            updateCurrentDateTime(); // Update the current date and time every second
+        }, 1000);
+    });
+</script>
+
+</body>
+</html>

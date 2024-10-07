@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search by Number</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            color: #2980b9;
+            margin: 0;
+        }
+
+        .back-btn {
+            background-color: black; /* Updated to black */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #333; /* Darker shade for hover */
+        }
+
+        label {
+            font-size: 16px;
+            color: #555;
+            display: block;
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            width: 100%;
+            max-width: 150px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        button:hover {
+            background-color: #6dd5fa;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                padding: 10px;
+            }
+
+            button, .back-btn {
+                width: auto;
+                font-size: 14px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header with Go Back button and Title -->
+    <div class="container">
+        <div class="header">
+            <button type="button" class="back-btn" onclick="window.history.back();">Go Back</button> <!-- Updated to go back to the previous page -->
+            <h1>Search by Number</h1>
+        </div>
+        
+        <label for="numberInput">Enter a Number:</label>
+        <input type="text" id="numberInput" required>
+        <button onclick="searchByNumber()">Search</button>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        function searchByNumber() {
+            const numberToSearch = document.getElementById('numberInput').value;
+            const url = `https://script.google.com/macros/s/AKfycbyNcZgJr3JTrdjXlLWprqID-Ci7kQ18WqWBlfBqnsNbvoTm1YCyMRhasz5l3RDu_7mK/exec?action=searchByNumber&numberToSearch=${numberToSearch}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <h3>Search Results</h3>
+                        <p>Total Entries: <span class="success">${data.totalEntries}</span></p>
+                        <p>Total Quantity: <span class="success">${data.totalQuantity}</span></p>
+                    `;
+                    resultDiv.style.display = 'block'; // Show results
+                })
+                .catch(error => {
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `<p class="error">Error: ${error}</p>`;
+                    resultDiv.style.display = 'block'; // Show error message
+                });
+        }
+    </script>
+
+</body>
+</html>
